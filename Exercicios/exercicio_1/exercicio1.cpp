@@ -48,11 +48,11 @@ int main(int argc, char const *argv[])
 
     if (count < 0)
     {
-        cerr << "Error: Dont write in uart comunication" << endl;
+        cerr << "Error: Dont read in uart comunication" << endl;
     }
     else if (count == 0)
     {
-        cerr << "Error: Dont read in uart comunication" << endl;
+        cerr << "Device not find" << endl;
     }
     else
     {
