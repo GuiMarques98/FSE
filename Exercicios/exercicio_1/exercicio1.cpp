@@ -44,7 +44,7 @@ int main(int argc, char const *argv[])
         cerr << "Error: Dont write in uart comunication" << endl;
     }
     count = 0;
-    count = read(uart0_filestream, &uart_buffer, 255);
+    count = read(uart0_filestream, (void *)uart_buffer, 255);
 
     if (count < 0)
     {
