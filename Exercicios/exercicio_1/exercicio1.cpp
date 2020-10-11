@@ -12,9 +12,9 @@ int main(int argc, char const *argv[])
     // Setup
     int uart0_filestream = -1;
     string a = "/dev/serial0";
-    int mat = 0x95030000;
+    unsigned int mat = 0x9503;
 
-    uart0_filestream = open(a.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+    uart0_filestream = open(a.c_str(), O_RDWR | O_NOCTTY);
     if (uart0_filestream == -1)
     {
         cerr << "Error: Serial port not working" << endl;
@@ -38,21 +38,26 @@ int main(int argc, char const *argv[])
     }
 
     unsigned char uart_buffer[256] = {0};
-    long int buffer = 0x0000A1 | mat;
-    debug(buffer);
-    int count = write(uart0_filestream, &buffer, sizeof(long int));
+    //unsigned long int buffer = 0xA1;
+    unsigned char buffer[] = {0xa1,9,5,0,3};
+    
+    int count = write(uart0_filestream, &buffer, 5);
+    cout << "Escrevendo" << endl;
+    debug(count);
     if (count <= 0)
     {
         cerr << "Error: Dont write in uart comunication" << endl;
     }
-    debug(count);
 
     count = 0;
-    usleep(100);
-    float buffer_float = 0;
-    count = read(uart0_filestream, (void *)&buffer_float, 4);
+    // usleep(200);
+    // char buffer_temp[256];
+    float buffer_temp = 0;
+    cout << "Lendo" << endl;
+
+    count = read(uart0_filestream, &buffer_temp, 4);
     debug(count);
-    debug(buffer_float);
+    debug(buffer_temp);
     if (count < 0)
     {
         cerr << "Error: Dont read in uart comunication" << endl;
