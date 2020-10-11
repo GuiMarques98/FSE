@@ -4,6 +4,8 @@
 #include <termios.h>
 #include <string>
 
+#define debug(x) cout << #x << " = " << (x) << endl
+
 using namespace std;
 int main(int argc, char const *argv[])
 {
@@ -37,15 +39,20 @@ int main(int argc, char const *argv[])
 
     unsigned char uart_buffer[256] = {0};
     long int buffer = 0xA1 + mat;
+    debug(buffer);
     int count = write(uart0_filestream, &buffer, sizeof(long int));
-
     if (count <= 0)
     {
         cerr << "Error: Dont write in uart comunication" << endl;
     }
-    count = 0;
-    count = read(uart0_filestream, (void *)uart_buffer, 255);
+    debug(count);
 
+    count = 0;
+    usleep(100);
+    float buffer_float = 0;
+    count = read(uart0_filestream, (void *)&buffer_float, 4);
+    debug(count);
+    debug(buffer_float);
     if (count < 0)
     {
         cerr << "Error: Dont read in uart comunication" << endl;
@@ -59,5 +66,6 @@ int main(int argc, char const *argv[])
         cout << "The uart answer is " << uart_buffer << endl;
     }
 
-    return 0;
+    close(uart0_filestream);
+    return 0;   
 }
