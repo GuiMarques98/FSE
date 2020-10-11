@@ -12,7 +12,7 @@ int main(int argc, char const *argv[])
     // Setup
     int uart0_filestream = -1;
     string a = "/dev/serial0";
-    int mat = 9503;
+    int mat = 0x95030000;
 
     uart0_filestream = open(a.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
     if (uart0_filestream == -1)
@@ -38,7 +38,7 @@ int main(int argc, char const *argv[])
     }
 
     unsigned char uart_buffer[256] = {0};
-    long int buffer = 0xA1 + mat;
+    long int buffer = 0x0000A1 | mat;
     debug(buffer);
     int count = write(uart0_filestream, &buffer, sizeof(long int));
     if (count <= 0)
