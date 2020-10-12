@@ -12,7 +12,7 @@ int main(int argc, char const *argv[])
     // Setup
     int uart0_filestream = -1;
     string a = "/dev/serial0";
-    unsigned int mat = 0x9503;
+    // unsigned int mat = 0x9503;
 
     uart0_filestream = open(a.c_str(), O_RDWR | O_NOCTTY);
     if (uart0_filestream == -1)
@@ -37,7 +37,6 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
-    unsigned char uart_buffer[256] = {0};
     //unsigned long int buffer = 0xA1;
     unsigned char buffer[] = {0xa1,9,5,0,3};
     
@@ -50,8 +49,6 @@ int main(int argc, char const *argv[])
     }
 
     count = 0;
-    // usleep(200);
-    // char buffer_temp[256];
     float buffer_temp = 0;
     cout << "Lendo" << endl;
 
@@ -68,7 +65,7 @@ int main(int argc, char const *argv[])
     }
     else
     {
-        cout << "The uart answer is " << uart_buffer << endl;
+        cout << "The uart answer is " << buffer_temp << endl;
     }
 
     close(uart0_filestream);

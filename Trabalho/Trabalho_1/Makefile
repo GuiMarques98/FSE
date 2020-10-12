@@ -2,7 +2,7 @@ CC := g++
 
 CFLAGS := -std=c++11 -Wall
 
-LNFLAG := -lncurses
+LNFLAG := -l bcm2835 -lwiringPiDev -lwiringPi
 
 SRCFILES := $(wildcard src/*.cpp)
 
