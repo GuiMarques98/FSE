@@ -1,4 +1,4 @@
-#include "../inc/gpio.hpp"
+#include "../inc/gpio.h"
 
 void config_gpio() {
     bcm2835_gpio_fsel(RESISTOR, BCM2835_GPIO_FSEL_ALT5);
@@ -30,3 +30,4 @@ void set_pwm(int data) {
     bcm2835_pwm_set_data(PWM_CHANNEL, data);
     bcm2835_delay(1);
 }
+

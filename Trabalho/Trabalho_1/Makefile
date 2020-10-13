@@ -1,15 +1,15 @@
-CC := g++
+CC := gcc
 
-CFLAGS := -std=c++11 -Wall
+CFLAGS :=  -Wall
 
 LNFLAG := -l bcm2835 -lwiringPiDev -lwiringPi
 
-SRCFILES := $(wildcard src/*.cpp)
+SRCFILES := $(wildcard src/*.c)
 
-all: $(SRCFILES:src/%.cpp=obj/%.o)
+all: $(SRCFILES:src/%.c=obj/%.o)
 	$(CC) $(CFLAGS) obj/*.o $(LNFLAG) -o bin/saida
 
-obj/%.o : src/%.cpp
+obj/%.o : src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 .PHONY: clean
