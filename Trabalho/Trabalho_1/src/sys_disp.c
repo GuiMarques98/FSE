@@ -2,13 +2,62 @@
 
 #include "../inc/sys_defs.h"
 
+void* controller(void* args) {
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+    while(1){
+        set_lcd_temperatures();
+        switch(read_type_global) {
+            case 'p':
+                if(floor(extern_temperature_global) > floor(potenciometer_global)) {
+                    cold();
+                } else if(floor(extern_temperature_global) ==  floor(potenciometer_global)) {
+                    turn_off_fan_resistor();
+                } else {
+                    warm();
+                }
+                break;
+            case 't':
+                if(floor(extern_temperature_global) > floor(informed_temperature_global)) {
+                    cold();
+                } else if(floor(extern_temperature_global) ==  floor(informed_temperature_global)) {
+                    turn_off_fan_resistor();
+                } else {
+                    warm();
+                }
+                break;
+        }
+        
+        struct timespec ts;
+        ts.tv_sec = 500 / 1000;
+        ts.tv_nsec = (500 % 1000) * 1000000;
+        nanosleep(&ts, NULL);
+    }
+}
 
+void alarm_handler(int signal) {
+    alarm(2);
+}
 
 void init_devices() {
+    // Init threads
+    pthread_mutexattr_init(&mutex_temperature_choice_attr);
+    pthread_mutexattr_settype(&mutex_temperature_choice_attr, PTHREAD_MUTEX_ERRORCHECK);
+    pthread_mutexattr_setrobust(&mutex_temperature_choice_attr, PTHREAD_MUTEX_ROBUST);
+    pthread_mutex_init(&mutex_temperature_choice, &mutex_temperature_choice_attr);
+
+    if(pthread_create(&control_thread, NULL, controller, NULL) != 0){
+        perror("Não foi possível criar a thread");
+        exit(1);
+    }
+    
+    // Init GPIO
+    init_gpio();
+
     // Setup WiringPI
     if (wiringPiSetup () == -1) {
         fprintf( stderr, "Wiring PI Setup Fail\n");
-        return;
+        exit(1);
     }
     //Init LCD
     LED_CONTROL = wiringPiI2CSetup(I2C_LCD_ADDR);
@@ -75,8 +124,13 @@ void init_devices() {
 }
 
 void interrpt_signal(int signal) {
+    set_fan(TURN_OFF);
+    set_resistor(TURN_OFF);
+    lcd_init(LED_CONTROL);
     close(uart0_filestream);
     close(id.fd);
+    close_gpio();
+    pthread_cancel(control_thread);
     exit(0);
 }
 
@@ -107,7 +161,9 @@ float get_extern_temperature() {
         return -1;
     }
 
-    return buffer_temp;
+    extern_temperature_global = buffer_temp;
+
+    return extern_temperature_global;
 }
 
 float get_potentiometer() {
@@ -135,30 +191,41 @@ float get_potentiometer() {
         fprintf( stderr, "Device not find\n");
         return -1;
     }
-
-    return buffer_pot;
+    potenciometer_global = buffer_pot;
+    return potenciometer_global;
 }
 
 double get_intern_temperature() {
-    return get_temp_sensor_data_forced_mode(&dev);
+    intern_temperature_global = get_temp_sensor_data_forced_mode(&dev);
+    return intern_temperature_global;
 }
 
 void set_lcd_temperatures() {
     float ex_temp = get_extern_temperature();
     float in_temp = get_intern_temperature();
-    float re_temp = (ex_temp+in_temp)/2;
+    float re_temp;
+    switch(read_type_global) {
+        case 'p':
+            re_temp = get_potentiometer();
+            break;
+        case 't':
+            re_temp = informed_temperature_global;
+            break;
+        default:
+            re_temp = 0;
+    }
     // printf("Extern temperature %f\n", ex_temp);
     // printf("Intern temperature %f\n", in_temp);
 
 
     char line1[255];
-    sprintf(line1, "TI:%.2f T2:%.2f", in_temp, ex_temp);
+    sprintf(line1, "TI:%.2f TE:%.2f", in_temp, ex_temp);
 
     char line2[255];
     sprintf(line2, "TR: %.2f ", re_temp);
 
-    printf(line1);
-    printf(line2);
+    // printf(line1);
+    // printf(line2);
 
     ClrLcd(LED_CONTROL);
     lcdLoc(LINE1, LED_CONTROL);
@@ -166,4 +233,35 @@ void set_lcd_temperatures() {
     lcdLoc(LINE2, LED_CONTROL);
     typeln(line2, LED_CONTROL);
 
+}
+
+int set_fan(int data) {
+    fan_control = data;
+    bcm2835_gpio_write(FAN, data);
+    //if(data != fan_control)
+    //    fan_control = bcm2835_gpio_lev(FAN);
+    return fan_control;
+}
+
+int set_resistor(int data) {
+    resistor_control = data;
+    bcm2835_gpio_write(RESISTOR, data);
+    //if(data != resistor_control)
+    //    resistor_control = bcm2835_gpio_lev(RESISTOR);
+    return resistor_control;
+}
+
+void warm() {
+    set_fan(TURN_OFF);
+    set_resistor(TURN_ON);
+}
+
+void cold() {
+    set_fan(TURN_ON);
+    set_resistor(TURN_OFF);
+}
+
+void turn_off_fan_resistor() {
+    set_fan(TURN_OFF);
+    set_resistor(TURN_OFF);
 }

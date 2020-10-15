@@ -22,15 +22,14 @@
 
 #define RESISTOR RPI_V2_GPIO_P1_16
 #define FAN RPI_V2_GPIO_P1_18
-#define PWM_CHANNEL 0
-#define RANGE 1024
+#define TURN_ON 0x0
+#define TURN_OFF 0x1
 
 // int PWM_RESISTOR_CONTROL;
 // int PWM_FAN_CONTROL;
 
-void config_gpio();
-void config_pwm(int, int);
-void set_pwm(int);
+void init_gpio();
+void close_gpio();
 
 
 

@@ -4,21 +4,41 @@
 // #include <wiringPi.h>
 
 
-#include "../inc/sys_disp.h"
+#include "../inc/usr_ctrl.h"
+
 
 
 // using namespace std;
 int main(int argc, char const *argv[])
 {
-    init_devices();
-    signal(SIGINT, interrpt_signal); 
-    while(1) {
-        float temp = get_extern_temperature();
-        printf("Extern temperature %f\n", temp);
-        // cout << "Extern temperature " << temp << endl;
-        set_lcd_temperatures();
-        sleep(1);
-    }
+
+    start();
+    // init_devices();
+    // set_fan(TURN_ON);
+    // set_resistor(TURN_ON);
+    // int inp = 0;
+    // int inp2 = 0;
+    // while(1) {
+    //     //set_fan(TURN);
+    //     printf("digite 1 pra ventuinha e 2 pra o resistor\n");
+    //     scanf("%d", &inp);
+
+    //     printf("Digite se quer ligar ou desligar\n");
+    //     scanf("%d", &inp2);
+    //     if(inp == 1) {
+    //         break;
+    //         set_fan(inp2);
+    //     } else {
+    //         set_resistor(inp2);
+    //     }
+    //     // float temp = get_extern_temperature();
+    //     // printf("Extern temperature %f\n", temp);
+    //     // cout << "Extern temperature " << temp << endl;
+    //     //set_lcd_temperatures();
+    //     //sleep(1);
+    // }
+    // set_fan(TURN_OFF);
+    // set_resistor(TURN_OFF);
 
     // float pot = get_potentiometer();
     // printf("Extern temperature %f\n", pot);

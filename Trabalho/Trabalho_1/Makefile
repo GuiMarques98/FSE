@@ -2,7 +2,7 @@ CC := gcc
 
 CFLAGS :=  -Wall
 
-LNFLAG := -l bcm2835 -lwiringPiDev -lwiringPi
+LNFLAG := -l bcm2835 -lwiringPiDev -lwiringPi -lpthread -lm
 
 SRCFILES := $(wildcard src/*.c)
 

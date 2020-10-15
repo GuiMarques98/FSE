@@ -1,33 +1,16 @@
 #include "../inc/gpio.h"
 
-void config_gpio() {
-    bcm2835_gpio_fsel(RESISTOR, BCM2835_GPIO_FSEL_ALT5);
-    bcm2835_gpio_fsel(FAN, BCM2835_GPIO_FSEL_ALT5);
+void init_gpio() {
+    if (!bcm2835_init())
+        exit(1);
+    bcm2835_gpio_fsel(RESISTOR, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_fsel(FAN, BCM2835_GPIO_FSEL_OUTP);
+    //bcm2835_gpio_set_pud(RESISTOR, BCM2835_GPIO_PUD_UP);
+    //bcm2835_gpio_set_pud(FAN, BCM2835_GPIO_PUD_UP);
 }
 
-void config_pwm(int fun_start, int resistor_start) {
-    // if(fun_start > RANGE-1) 
-    //     PWM_RESISTOR_CONTROL = RANGE-1;
-    // else if (fun_start <= 0)
-    //     PWM_RESISTOR_CONTROL = 1;
-    // else
-    //     PWM_RESISTOR_CONTROL = fun_start;
-
-    // if(resistor_start > RANGE-1) 
-    //     PWM_FAN_CONTROL = RANGE-1;
-    // else if (resistor_start <= 0)
-    //     PWM_FAN_CONTROL = 1;
-    // else
-    //     PWM_FAN_CONTROL = resistor_start;
-    
-    bcm2835_pwm_set_clock(BCM2835_PWM_CLOCK_DIVIDER_16);
-    bcm2835_pwm_set_mode(PWM_CHANNEL, 1, 1);
-    bcm2835_pwm_set_range(PWM_CHANNEL, RANGE);
-
+void close_gpio() {
+    bcm2835_close();
 }
 
-void set_pwm(int data) {
-    bcm2835_pwm_set_data(PWM_CHANNEL, data);
-    bcm2835_delay(1);
-}
 
