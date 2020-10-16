@@ -18,6 +18,7 @@
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include <math.h>
+#include <time.h>
 #include "bme280.h"
 #include "bme280_defs.h"
 #include "i2c.h"
@@ -38,6 +39,7 @@ void* controller(void*);
 void alarm_handler(int);
 void interrpt_signal(int);
 
+void write_csv(char *f);
 void warm();
 void cold();
 void turn_off_fan_resistor();

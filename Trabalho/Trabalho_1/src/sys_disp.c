@@ -37,6 +37,22 @@ void* controller(void* args) {
 
 void alarm_handler(int signal) {
     alarm(2);
+    write_csv("doc/log.csv");
+    // pause();
+}
+
+void write_csv(char *f) {
+    // open csv file
+    FILE * csv_f = fopen(f, "a");
+    
+    // Get current data
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    fprintf(csv_f, "\"%d-%02d-%02d %02d:%02d:%02d\",\"%.2f\",\"%.2f\"\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, extern_temperature_global, intern_temperature_global);
+
+    // write in csv file
+    fclose(csv_f);
 }
 
 void init_devices() {
@@ -124,17 +140,17 @@ void init_devices() {
 }
 
 void interrpt_signal(int signal) {
+    pthread_cancel(control_thread);
     set_fan(TURN_OFF);
     set_resistor(TURN_OFF);
     lcd_init(LED_CONTROL);
     close(uart0_filestream);
     close(id.fd);
     close_gpio();
-    pthread_cancel(control_thread);
     exit(0);
 }
 
-float get_extern_temperature() {
+double get_intern_temperature() {
 
     // Creating the message to send 0xA1 and registry
     unsigned char buffer[] = {0xa1,9,5,0,3};
@@ -195,7 +211,7 @@ float get_potentiometer() {
     return potenciometer_global;
 }
 
-double get_intern_temperature() {
+float get_extern_temperature() {
     intern_temperature_global = get_temp_sensor_data_forced_mode(&dev);
     return intern_temperature_global;
 }

@@ -4,6 +4,7 @@
 void start() {
     init_menu();
     menu();
+    close_menu();
 }
 
 void init_menu() {
@@ -32,7 +33,6 @@ void menu() {
                 set_temperature_ctrl();
         }
     }
-    close_menu();
 
 }
 
