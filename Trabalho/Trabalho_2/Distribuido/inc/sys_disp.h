@@ -37,4 +37,7 @@ void turn_off_lamp(uint8_t);
 void turn_on_all_lamps();
 void turn_off_all_lamps();
 
+int detect_presence(uint8_t);
+int detect_any_presence();
+
 #endif

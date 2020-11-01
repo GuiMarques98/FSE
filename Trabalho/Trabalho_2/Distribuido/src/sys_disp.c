@@ -92,6 +92,18 @@ void turn_off_all_lamps() {
     bcm2835_gpio_write(LAMP_BEDROOM_2, 0);
 }
 
-int detect_presence() {
-    
+int detect_presence(uint8_t disp) {
+    return bcm2835_gpio_lev(disp);
+}
+
+int detect_any_presence() {
+
+    return bcm2835_gpio_lev(PRESENCE_ROOM) ||
+    bcm2835_gpio_lev(PRESENCE_KITCHEN) ||
+    bcm2835_gpio_lev(OPENING_DOOR_KITCHEN) ||
+    bcm2835_gpio_lev(OPENING_WINDOW_KITCHEN) ||
+    bcm2835_gpio_lev(OPENING_DOOR_ROOM) ||
+    bcm2835_gpio_lev(OPENING_WINDOW_ROOM) ||
+    bcm2835_gpio_lev(OPENING_WINDOW_BEDROOM_1) ||
+    bcm2835_gpio_lev(OPENING_WINDOW_BEDROOM_2);
 }
