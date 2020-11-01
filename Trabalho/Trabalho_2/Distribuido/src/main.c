@@ -17,7 +17,7 @@ int main(int argc, char const *argv[])
     int lampada;
     printf("Como está a presença de cada pino a seguir\n");
 
-    printf("O de Presença da sala está %d\n", bcm2835_gpio_eds(PRESENCE_ROOM));
+    printf("O de Presença da sala está %d\n", bcm2835_gpio_lev(PRESENCE_ROOM));
     // printf("O de Presença da cozinha está %d\n", bcm2835_gpio_eds(PRESENCE_KITCHEN));
     // printf("O de Abertura da parta da cozinha está %d\n", bcm2835_gpio_eds(OPENING_DOOR_KITCHEN));
     // printf("O de Abertura da janela da cozinha está %d\n", bcm2835_gpio_eds(OPENING_WINDOW_KITCHEN));

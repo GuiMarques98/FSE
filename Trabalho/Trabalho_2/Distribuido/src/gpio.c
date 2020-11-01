@@ -29,7 +29,7 @@ void init_gpio() {
     // // Presence
     bcm2835_gpio_fsel(PRESENCE_ROOM, BCM2835_GPIO_FSEL_INPT);
     // bcm2835_gpio_set_pud(PRESENCE_ROOM, BCM2835_GPIO_PUD_UP);
-    bcm2835_gpio_len(PRESENCE_ROOM);
+    // bcm2835_gpio_len(PRESENCE_ROOM);
 
     // bcm2835_gpio_fsel(PRESENCE_KITCHEN, BCM2835_GPIO_FSEL_INPT);
     // bcm2835_gpio_set_pud(PRESENCE_KITCHEN, BCM2835_GPIO_PUD_UP);
