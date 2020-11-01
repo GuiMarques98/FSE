@@ -66,7 +66,7 @@ void interrpt_signal(int signal) {
 }
 
 bme_env_t get_temperature_house() {
-    bme_env_t temp = get_temp_sensor_data_forced_mode(&dev);
+    bme_env_t temp = stream_sensor_data_normal_mode(&dev);
     return temp;
 }
 
@@ -92,12 +92,29 @@ void turn_off_all_lamps() {
     bcm2835_gpio_write(LAMP_BEDROOM_2, 0);
 }
 
+void turn_on_air(uint8_t air) {
+    bcm2835_gpio_write(air, 1);
+}
+
+void turn_off_air(uint8_t air) {
+    bcm2835_gpio_write(air, 0);
+}
+
+void turn_om_all_airs() {
+    bcm2835_gpio_write(AIR_CONDITIONING_1, 1);
+    bcm2835_gpio_write(AIR_CONDITIONING_2, 1);
+}
+
+void turn_off_all_airs() {
+    bcm2835_gpio_write(AIR_CONDITIONING_1, 0);
+    bcm2835_gpio_write(AIR_CONDITIONING_2, 0);
+}
+
 int detect_presence(uint8_t disp) {
     return bcm2835_gpio_lev(disp);
 }
 
 int detect_any_presence() {
-
     return bcm2835_gpio_lev(PRESENCE_ROOM) ||
     bcm2835_gpio_lev(PRESENCE_KITCHEN) ||
     bcm2835_gpio_lev(OPENING_DOOR_KITCHEN) ||

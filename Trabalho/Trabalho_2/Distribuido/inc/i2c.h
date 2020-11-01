@@ -69,4 +69,6 @@ bme_env_t get_temperature(struct bme280_data *comp_data);
 
 bme_env_t get_temp_sensor_data_forced_mode(struct bme280_dev *dev);
 
+bme_env_t stream_sensor_data_normal_mode(struct bme280_dev *dev);
+
 #endif
