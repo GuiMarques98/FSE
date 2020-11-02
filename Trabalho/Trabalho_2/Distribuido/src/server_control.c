@@ -63,24 +63,66 @@ void close_all(int signal) {
 
 void* server_listener(void* args) {
     server_arg_t arg = *((server_arg_t*) args);
-    char buffer[MAX_JSON_STRING];
     while(1) {
         int fd_connect = accept(*(arg.fd), (struct sockaddr*)arg.addr, (socklen_t *)sizeof(struct sockaddr));
         if(fd_connect < 0) {
             fprintf(stderr, "Error receiving package\n");
             continue;
+        } else {
+            double lamp[4] = {0}, air[2] = {0};
+            int err = get_json(&fd_connect, lamp, air);
+            if(err == 0) {
+                turn_lamp(LAMP_KITCHEN, lamp[0]);
+                turn_lamp(LAMP_ROOM, lamp[1]);
+                turn_lamp(LAMP_BEDROOM_1, lamp[2]);
+                turn_lamp(LAMP_BEDROOM_2, lamp[3]);
+
+                turn_air(AIR_CONDITIONING_1, air[0]);
+                turn_air(AIR_CONDITIONING_2, air[1]);
+            }
+            shutdown(fd_connect, SHUT_RDWR);
+            close(fd_connect);
         }
 
-        int size = read(fd_connect, buffer, MAX_JSON_STRING);
-        if(size <= 0) {
-            fprintf(stderr, "Error reading package\n");
-        }
-        printf("%s", buffer);
-        // cJSON *json = cJSON_Parse(buffer);
-
-        // make json stuff
-        // cJSON_Delete(json);
     }
+}
+
+int get_json(int* fd_connect, double* lamp, double* air) {
+    char buffer[MAX_JSON_STRING];
+
+    int size = read(*fd_connect, buffer, MAX_JSON_STRING);
+    if(size <= 0) {
+        fprintf(stderr, "Error reading package\n");
+        return -1;
+    }
+    printf("%s", buffer);
+    cJSON *json = cJSON_Parse(buffer);
+    // Getting all items
+
+    // Getting lamp Json
+    cJSON* item = cJSON_GetObjectItemCaseSensitive(json, "lamp1");
+    lamp[0] = cJSON_GetNumberValue(item);
+
+    item = cJSON_GetObjectItemCaseSensitive(json, "lamp2");
+    lamp[1] = cJSON_GetNumberValue(item);
+
+    item = cJSON_GetObjectItemCaseSensitive(json, "lamp3");
+    lamp[2] = cJSON_GetNumberValue(item);
+
+    item = cJSON_GetObjectItemCaseSensitive(json, "lamp4");
+    lamp[3] = cJSON_GetNumberValue(item);
+
+    // Getting air Json
+    item = cJSON_GetObjectItemCaseSensitive(json, "air1");
+    air[0] = cJSON_GetNumberValue(item);
+
+    item = cJSON_GetObjectItemCaseSensitive(json, "air2");
+    air[1] = cJSON_GetNumberValue(item);
+
+    // make json stuff
+    cJSON_Delete(json);
+
+    return 0;
 }
 
 void* server_device(void* args) {
@@ -99,7 +141,7 @@ void* server_device(void* args) {
         time_b += end.tv_nsec / 1000000000.0;
 
         if((time_e - time_b) >= 1.0) {
-            // send temp hum
+            // send temp 
         }
 
         // Sleep
@@ -109,4 +151,15 @@ void* server_device(void* args) {
         nanosleep(&ts, NULL);
 
     }
+}
+
+int send_alarm() {
+    struct sockaddr_in addr;
+    int fd_alarm = socket(AF_INET, SOCK_STREAM, 0);
+
+    addr.sin_port = htons(CENTRAL_PORT);
+    addr.sin_addr.s_addr = inet_addr(CENTRAL_IP);
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_family = AF_INET;
+
 }

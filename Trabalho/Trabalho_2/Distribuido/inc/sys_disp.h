@@ -27,11 +27,10 @@
 void init_devices();
 bme_env_t get_temperature_house();
 
-void alarm_handler(int);
 void interrpt_signal(int);
 
-void write_csv(char *f);
 
+void turn_lamp(uint8_t, int);
 void turn_on_lamp(uint8_t);
 void turn_off_lamp(uint8_t);
 void turn_on_all_lamps();
@@ -40,9 +39,9 @@ void turn_off_all_lamps();
 int detect_presence(uint8_t);
 int detect_any_presence();
 
+void turn_air(uint8_t, int);
 void turn_on_air(uint8_t air);
 void turn_off_air(uint8_t air);
-
 void turn_om_all_airs();
 void turn_off_all_airs();
 #endif

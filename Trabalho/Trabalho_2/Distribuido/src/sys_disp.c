@@ -3,26 +3,6 @@
 #include "../inc/sys_defs.h"
 
 
-void alarm_handler(int signal) {
-    alarm(2);
-    write_csv("doc/log.csv");
-    // pause();
-}
-
-void write_csv(char *f) {
-    // open csv file
-    FILE * csv_f = fopen(f, "a");
-    
-    // Get current data
-    time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
-
-    fprintf(csv_f, "\"%d-%02d-%02d %02d:%02d:%02d\",\"%.2f\",\"%.2f\"\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, extern_temperature_global, intern_temperature_global);
-
-    // write in csv file
-    fclose(csv_f);
-}
-
 void init_devices() {
     // Init GPIO
     init_gpio();
@@ -70,6 +50,10 @@ bme_env_t get_temperature_house() {
     return temp;
 }
 
+void turn_lamp(uint8_t lamp, int data) {
+    bcm2835_gpio_write(lamp, data);
+}
+
 void turn_on_lamp(uint8_t lamp) {
     bcm2835_gpio_write(lamp, 1);
 }
@@ -90,6 +74,11 @@ void turn_off_all_lamps() {
     bcm2835_gpio_write(LAMP_ROOM, 0);
     bcm2835_gpio_write(LAMP_BEDROOM_1, 0);
     bcm2835_gpio_write(LAMP_BEDROOM_2, 0);
+}
+
+
+void turn_air(uint8_t air, int data) {
+    bcm2835_gpio_write(air, data);
 }
 
 void turn_on_air(uint8_t air) {

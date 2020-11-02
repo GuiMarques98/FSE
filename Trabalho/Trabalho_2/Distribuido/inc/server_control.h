@@ -13,6 +13,9 @@
 
 #define MAX_JSON_STRING 5000
 #define SERVER_PORT 10117
+#define CENTRAL_PORT 10017
+#define SERVER_IP "192.168.0.52"
+#define CENTRAL_IP "192.168.0.53"
 #define QUEUE_LEN 5
 
 typedef struct server_arg {
@@ -32,6 +35,8 @@ void get_data();
 void* server_listener(void*);
 void* server_device(void*);
 
+int get_json(int*, double*, double*);
+int send_alarm();
 void close_server();
 
 #endif
