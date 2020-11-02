@@ -13,7 +13,7 @@ int LED_CONTROL = -1;
 
 #ifndef __PTHREAD_CONTROLL__
 #define __PTHREAD_CONTROLL__
-pthread_t control_thread;
+pthread_t control_thread[2];
 #endif
 
 
@@ -28,11 +28,9 @@ pthread_mutexattr_t mutex_temperature_choice_attr;
 
 #ifndef _TEMPERATURE_POTENCIOMETER_CONTROLL__
 #define _TEMPERATURE_POTENCIOMETER_CONTROLL__
-float  extern_temperature_global = -1;
-double intern_temperature_global = -1;
-float potenciometer_global = -1;
-float informed_temperature_global = -1;
-char read_type_global = 'n';
+float  temperature = -1;
+float  humidity = -1;
+int alarm_house = 0;
 #endif
 
 
@@ -47,11 +45,6 @@ struct bme280_dev dev;
 struct identifier id;
 #endif
 
-#ifndef __GPIO_CONTROLL__
-#define __GPIO_CONTROLL__
-int fan_control = 1;
-int resistor_control = 1;
-#endif
 
 
 #endif
