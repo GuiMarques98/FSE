@@ -38,7 +38,7 @@ void turn_off_all_lamps();
 
 int detect_presence(uint8_t);
 int detect_any_presence();
-
+int is_bme_wrong(bme_env_t);
 void turn_air(uint8_t, int);
 void turn_on_air(uint8_t air);
 void turn_off_air(uint8_t air);

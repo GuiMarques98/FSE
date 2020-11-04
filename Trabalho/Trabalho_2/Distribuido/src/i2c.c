@@ -155,7 +155,7 @@ bme_env_t get_temperature(struct bme280_data *comp_data)
     hum = 1.0f / 1024.0f * comp_data->humidity;
 #endif
 #endif
-    printf("temperatura = %.2f\nHumidade = %.2f\n", comp_data->temperature, comp_data->humidity);
+    // printf("temperatura = %.2f\nHumidade = %.2f\n", comp_data->temperature, comp_data->humidity);
     bme_env_t env;env.temp=temp;env.hum=hum;
     return env;
 }
@@ -242,16 +242,16 @@ bme_env_t stream_sensor_data_normal_mode(struct bme280_dev *dev)
 	rslt = bme280_set_sensor_settings(settings_sel, dev);
 	rslt = bme280_set_sensor_mode(BME280_NORMAL_MODE, dev);
 
-	printf("Temperature, Pressure, Humidity\r\n");
+	// printf("Temperature, Pressure, Humidity\r\n");
 	// while (1) {
 		/* Delay while the sensor completes a measurement */
 		dev->delay_us(100000, dev->intf_ptr);
 		rslt = bme280_get_sensor_data(BME280_ALL, &comp_data, dev);
-		print_sensor_data(&comp_data);
+		// print_sensor_data(&comp_data);
 	// }
-    bme_env_t ret;
-    ret.temp = comp_data.temperature;
-    ret.hum = comp_data.humidity;
+    // bme_env_t ret;
+    // ret.temp = comp_data.temperature;
+    // ret.hum = comp_data.humidity;
 
-	return ret;
+	return get_temperature(&comp_data);;
 }

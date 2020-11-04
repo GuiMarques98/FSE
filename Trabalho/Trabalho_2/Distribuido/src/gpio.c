@@ -5,14 +5,14 @@ void init_gpio() {
         exit(1);
 
     // Lamp
-    bcm2835_gpio_fsel(LAMP_KITCHEN, BCM2835_GPIO_FSEL_INPT);
+    bcm2835_gpio_fsel(LAMP_KITCHEN, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_fsel(LAMP_ROOM, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_fsel(LAMP_BEDROOM_1, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_fsel(LAMP_BEDROOM_2, BCM2835_GPIO_FSEL_OUTP);
     
     // Air condition
-    bcm2835_gpio_fsel(AIR_CONDITIONING_1, BCM2835_GPIO_FSEL_INPT);
-    bcm2835_gpio_fsel(AIR_CONDITIONING_2, BCM2835_GPIO_FSEL_INPT);
+    bcm2835_gpio_fsel(AIR_CONDITIONING_1, BCM2835_GPIO_FSEL_OUTP);
+    bcm2835_gpio_fsel(AIR_CONDITIONING_2, BCM2835_GPIO_FSEL_OUTP);
 
     // Opening sensor
     bcm2835_gpio_fsel(OPENING_WINDOW_KITCHEN, BCM2835_GPIO_FSEL_INPT);

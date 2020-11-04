@@ -2,6 +2,12 @@
 
 #include "../inc/sys_defs.h"
 
+struct bme280_dev dev;
+struct identifier id;
+
+bme_env_t env_global = {-100, -100, 5};
+int alarm_house = 0;
+const int hysteresis = 2;
 
 void init_devices() {
     // Init GPIO
@@ -46,8 +52,57 @@ void interrpt_signal(int signal) {
 }
 
 bme_env_t get_temperature_house() {
-    bme_env_t temp = stream_sensor_data_normal_mode(&dev);
-    return temp;
+    // bme_env_t temp = stream_sensor_data_normal_mode(&dev);
+    bme_env_t temp = get_temp_sensor_data_forced_mode(&dev);
+    temp.err = is_bme_wrong(temp);
+
+    if(env_global.err > 3)
+        temp.err = env_global.err;
+    switch(temp.err) {
+        case 0:
+            env_global = temp;
+            break;
+        case 1:
+            env_global.hum = temp.hum;
+            env_global.err = temp.err;
+            break;
+        case 2:
+            env_global.temp = temp.temp;
+            env_global.err = temp.err;
+            break;
+        // default:
+            // Everything is wrong
+    }
+
+    return env_global;
+}
+
+
+/*
+If BME read is okay return 0
+else return 1 if only temperature is wrong
+return 2 if only humidity is wrong
+return 3 if both are wrong
+*/
+int is_bme_wrong(bme_env_t env) {
+    int err_pres = 2, err = 0;
+    printf("This is ENV the temperature %.2f and this humidity %.2f\n", env.temp, env.hum);
+    if(env_global.err > 3) {
+        env_global.err--;
+        return 0;
+    }
+    if(env_global.temp == -100.0 || env_global.hum == -100.0)
+        return 0;
+    if((env_global.temp - err_pres) > env.temp || (env_global.temp - err_pres) > env.temp)
+        err++;
+
+    if((env_global.hum - err_pres) > env.hum || (env_global.hum - err_pres) > env.hum) {
+        if(err)
+            return 3;
+        return 2;
+    }
+
+    return err;
 }
 
 void turn_lamp(uint8_t lamp, int data) {

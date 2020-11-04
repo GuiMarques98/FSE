@@ -40,6 +40,7 @@
 typedef struct bme_env {
     float temp;
     float hum;
+    int err;
 }bme_env_t;
 
 /* Structure that contains identifier details used in example */

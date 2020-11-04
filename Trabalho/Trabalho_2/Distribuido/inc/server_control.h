@@ -29,7 +29,6 @@ void init_server();
 
 void alarm_signal(int);
 void send_data();
-void send_alarm();
 void get_data();
 
 void* server_listener(void*);
@@ -37,6 +36,7 @@ void* server_device(void*);
 
 int get_json(int*, double*, double*);
 int send_alarm();
+void close_signal(int signal);
 void close_server();
 
 #endif
