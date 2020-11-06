@@ -86,7 +86,7 @@ return 3 if both are wrong
 */
 int is_bme_wrong(bme_env_t env) {
     int err_pres = 2, err = 0;
-    printf("This is ENV the temperature %.2f and this humidity %.2f\n", env.temp, env.hum);
+    // printf("This is ENV the temperature %.2f and this humidity %.2f\n", env.temp, env.hum);
     if(env_global.err > 3) {
         env_global.err--;
         return 0;

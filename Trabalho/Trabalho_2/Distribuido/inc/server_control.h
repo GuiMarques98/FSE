@@ -6,12 +6,15 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include <netdb.h> 
+#include <netdb.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 #include "cJSON.h"
 #include "sys_disp.h"
 
-#define MAX_JSON_STRING 5000
+#define MAX_JSON_STRING 500
 #define SERVER_PORT 10117
 #define CENTRAL_PORT 10017
 #define SERVER_IP "192.168.0.52"
@@ -28,6 +31,7 @@ void start_server();
 void init_server();
 
 void alarm_signal(int);
+int send_env(bme_env_t);
 void send_data();
 void get_data();
 
