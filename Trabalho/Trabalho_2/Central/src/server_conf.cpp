@@ -116,7 +116,7 @@ void menu_cont() {
             mvwprintw(wdevices, i+1, 1, devices_str[i].c_str());
             wattroff(wdevices, A_REVERSE);
             int j = (devices_turn[i])?1:0;
-            if(i == 7)
+            if(i == 6)
                 continue;
             mvwprintw(wdevices, i+1, (max_x/2)-6, temp_h[j].c_str());
         }
