@@ -4,17 +4,19 @@
 // Screen ncurses variables
 WINDOW* wenv;
 WINDOW* wdevices;
+WINDOW* werr;
 int max_x, max_y;
 float temp = 0.0, hum = 0.0;
-int flag = 1;
+int flag = 1, err_l = 2;
 bool devices_turn[6] = {false};
+bool alarm_global = false;
 
 // Connection variables
 int fd_socket;
 
 
 // PThread variables
-pthread_t control_thread;
+pthread_t control_thread, alarm_thread = NULL;
 pthread_mutex_t lock;
 pthread_mutexattr_t lock_attr;
 
@@ -28,38 +30,6 @@ void start_all() {
 }
 
 void init_menu() {
-    // Socket initing
-    struct sockaddr_in addr;
-    fd_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if(fd_socket == -1) {
-        fprintf(stderr, "Failed to open socket.\n");
-        exit(1);
-    }
-    addr.sin_port = htons(CENTRAL_PORT);
-    addr.sin_addr.s_addr = 0;
-    addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_family = AF_INET;
-
-    int err = bind(fd_socket, (struct sockaddr *)&addr,sizeof(struct sockaddr_in));
-    if(err == -1) {
-        fprintf(stderr, "Error bind port %d\n", CENTRAL_PORT);
-        exit(1);
-    }
-
-    err = listen(fd_socket, QUEUE_LEN);
-    if(err == -1) {
-        fprintf(stderr, "Error initing listen to\n");
-        exit(1);
-    }
-
-    // Pthread init mutex
-    pthread_mutexattr_init(&lock_attr);
-    pthread_mutexattr_settype(&lock_attr, PTHREAD_MUTEX_ERRORCHECK);
-    pthread_mutexattr_setrobust(&lock_attr, PTHREAD_MUTEX_ROBUST);
-    pthread_mutex_init(&lock, &lock_attr);
-
-    // Creating threads for server listener commands
-    pthread_create(&control_thread, NULL, get_env, NULL);
 
 
     // Initing ncurses
@@ -73,17 +43,63 @@ void init_menu() {
 
     // Create a new window
     wenv = newwin(4, max_x-1, 0, 0);
-    wdevices = newwin(10, max_x-1, 4, 0);
+    wdevices = newwin(10, (max_x/2)+4, 4, 0);
+    werr = newwin(10, (max_x/2)-4, 4, (max_x/2)+4);
     box(wdevices, 0, 0);
     box(wenv, 0, 0);
+    box(werr, 0, 0);
+    mvwprintw(werr, 1, 1, "Erros:");
     refresh();
     wrefresh(wdevices);
     wrefresh(wenv);
+    wrefresh(werr);
+    
 
     nodelay(wdevices, true);
     // We can use a arrow
     keypad(wdevices, true);
     keypad(wenv, false);
+
+
+    // Socket initing
+    struct sockaddr_in addr;
+    fd_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if(fd_socket == -1) {
+        mvwprintw(werr, err_l, 1,"Failed to open socket.");
+        
+        print_err_handle();
+        exit(1);
+    }
+    addr.sin_port = htons(CENTRAL_PORT);
+    addr.sin_addr.s_addr = 0;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_family = AF_INET;
+
+    int err = bind(fd_socket, (struct sockaddr *)&addr,sizeof(struct sockaddr_in));
+    if(err == -1) {
+        mvwprintw(werr, err_l, 1,"Error bind port %d", CENTRAL_PORT);
+        
+        print_err_handle();
+        exit(1);
+    }
+
+    err = listen(fd_socket, QUEUE_LEN);
+    if(err == -1) {
+        mvwprintw(werr, err_l, 1,"Error initing listen to");
+        
+        print_err_handle();
+        exit(1);
+    }
+
+    // Pthread init mutex
+    pthread_mutexattr_init(&lock_attr);
+    pthread_mutexattr_settype(&lock_attr, PTHREAD_MUTEX_ERRORCHECK);
+    pthread_mutexattr_setrobust(&lock_attr, PTHREAD_MUTEX_ROBUST);
+    pthread_mutex_init(&lock, &lock_attr);
+
+    // Creating threads for server listener commands
+    pthread_create(&control_thread, NULL, get_env, NULL);
+
 
 
 }
@@ -102,13 +118,17 @@ void menu_cont() {
             int j = (devices_turn[i])?1:0;
             if(i == 7)
                 continue;
-            mvwprintw(wdevices, i+1, max_x/2, temp_h[j].c_str());
+            mvwprintw(wdevices, i+1, (max_x/2)-6, temp_h[j].c_str());
         }
 
         mvwprintw(wenv, 1, 1, "Temperatura: %.2f", temp);
         mvwprintw(wenv, 2, 1, "Humidade: %.2f", hum);
         wattroff(wenv, A_REVERSE);
+        pthread_mutex_lock(&lock);
         wrefresh(wenv);
+        wrefresh(werr);
+        pthread_mutex_unlock(&lock);
+        
 
 
         choice = wgetch(wdevices);
@@ -128,7 +148,21 @@ void menu_cont() {
             
             case 10:
                 apply_choice(highlight);
+                if(highlight != 6)
+                    send_command();
                 break;
+            case 'q':
+            case 'Q':
+                if(alarm_thread != NULL) {
+                    pthread_mutex_lock(&lock);
+                    alarm_global = false;
+                    pthread_mutex_unlock(&lock);
+                    pthread_cancel(alarm_thread);
+                }
+                mvwprintw(werr, err_l, 1,"O Alarm foi desativado");                
+                print_err_handle();
+                break;
+
         }
 
         // Sleep
@@ -140,18 +174,35 @@ void menu_cont() {
     }
 }
 
+void print_err_handle() {
+
+    pthread_mutex_lock(&lock);
+    err_l++;
+    pthread_mutex_unlock(&lock);
+
+    if(err_l >= 10) {
+        pthread_mutex_lock(&lock);
+        err_l = 2;
+        pthread_mutex_unlock(&lock);
+    }
+
+}
+
 void* get_env(void* args) {
 
     while(1) {
         int fd_connect = accept(fd_socket, NULL, NULL);
         if(fd_connect == -1) {
-            fprintf(stderr, "Error receiving package\n");
+            mvwprintw(werr, err_l, 1,"Error receiving package");
+            
+            print_err_handle();            
             continue;
         } else {
             if(get_json(&fd_connect) != 0) {
-                fprintf(stderr, "Error reading json!\n");
+                mvwprintw(werr, err_l, 1,"Error reading json!");
+                
+                print_err_handle();
             }
-            get_json(&fd_connect);
             shutdown(fd_connect, SHUT_RDWR);
             close(fd_connect);
         }
@@ -162,12 +213,14 @@ int get_json(int* fd_connect) {
     char buffer[MAX_JSON_STRING] = "";
 
     int size = read(*fd_connect, buffer, MAX_JSON_STRING);
-    printf("Json:\n%s\n", buffer);
+    // printf("Json:%s", buffer);
     if(size <= 0) {
-        fprintf(stderr, "Error reading package\n");
+        mvwprintw(werr, err_l, 1,"Error reading package");
+        
+        print_err_handle();
         return -1;
     }
-    printf("\nJson recebido:\n%s\n", buffer);
+    // printf("\nJson recebido:%s", buffer);
     cJSON *json = cJSON_Parse(buffer);
     if(json == NULL)
         return -1;
@@ -181,22 +234,54 @@ int get_json(int* fd_connect) {
     item = cJSON_GetObjectItemCaseSensitive(json, "temp");
     if(item == NULL)
         return -1;
+    // printf("Temp = %.2f", temp);
+    pthread_mutex_lock(&lock);
     temp = cJSON_GetNumberValue(item);
-    printf("Temp = %.2f", temp);
+    pthread_mutex_unlock(&lock);
 
     item = cJSON_GetObjectItemCaseSensitive(json, "hum");
     if(item == NULL)
         return -1;
+    pthread_mutex_lock(&lock);
     hum = cJSON_GetNumberValue(item);
-    printf("Temp = %.2f", hum);
+    pthread_mutex_unlock(&lock);
+    // printf("Temp = %.2f", hum);
 
     return 0;
 }
 
-void play_alarm() {}
+void play_alarm() {
+    mvwprintw(werr, err_l, 1,"Alarm esta tocando");
+    print_err_handle();
+    mvwprintw(werr, err_l, 1,"Pressione q para para-lo");
+    print_err_handle();
+
+    pthread_mutex_lock(&lock);
+    alarm_global = true;
+    pthread_mutex_unlock(&lock);
+    pthread_create(&alarm_thread, NULL, alarm_play_thread, NULL);
+    pthread_join(alarm_thread, NULL);
+}
+
+void* alarm_play_thread(void* args) {
+    while(alarm_global) {
+        // pthread_mutex_lock(&lock);
+        mvwprintw(werr, err_l, 1,"Alarm esta tocando");
+        print_err_handle();
+        mvwprintw(werr, err_l, 1,"Pressione q para para-lo");
+        print_err_handle();
+        // pthread_mutex_unlock(&lock);
+        system("omxplayer doc/alarm.mp3");
+
+        // Sleep
+        struct timespec ts;
+        ts.tv_sec = 400 / 1000;
+        ts.tv_nsec = (400 % 1000) * 1000000;
+        nanosleep(&ts, NULL);
+    }
+}
 
 void close_menu() {
-
     pthread_mutexattr_destroy(&lock_attr);
     pthread_mutex_destroy(&lock);
     pthread_cancel(control_thread);
@@ -204,7 +289,7 @@ void close_menu() {
     endwin();
 }
 
-void send_command(int sig) {
+void send_command() {
     // char message[] = "{\"lamp1\":0,\"lamp2\":0,\"lamp3\":0,\"lamp4\":0,\"air1\":0,\"air2\":0}\0";
     // char message[] = "{\"lamp%d\":%d,\"lamp%d\":%d,\"lamp%d\":%d,\"lamp%d\":%d,\"air%d\":%d,\"air%d\":%d}\0";
 
@@ -213,23 +298,25 @@ void send_command(int sig) {
 
     for(int i=0; i< 6; ++i) {
         if(i < 4)
-            stringStream << "\"lamp" << i << "\":" << devices_turn[i] << ",";
+            stringStream << "\"lamp" << i+1 << "\":" << devices_turn[i] << ",";
         else
-            stringStream << "\"air" << (i-4) << "\":" << devices_turn[i];
+            stringStream << "\"air" << (i-3) << "\":" << devices_turn[i];
         if(i == 4)
             stringStream << ",";
     }
     stringStream << "}";
 
-    cout << stringStream.str() << endl;
+    // cout << stringStream.str() << endl;
 
     string message = stringStream.str();
     // char message[] = temp.c_str();
 
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if(fd == -1) {
-        fprintf(stderr, "Failed to open socket.\n");
-        exit(1);
+        mvwprintw(werr, err_l, 1,"Failed to open socket.");
+        
+        print_err_handle();
+        return;
     }
 
     struct sockaddr_in addr;
@@ -239,11 +326,24 @@ void send_command(int sig) {
     addr.sin_addr.s_addr = inet_addr(DIST_IP);
 
     int err = connect(fd, (struct sockaddr*)&addr, sizeof(addr));
-
-    if(err == 0) {
-        err = send(fd, message.c_str(), message.length(), 0);
+    if(err < 0) {
+        mvwprintw(werr, err_l, 1,"Failed connecting to server.");
+        
+        print_err_handle();
         close(fd);
+        return;
     }
+
+    err = send(fd, message.c_str(), message.length(), 0);
+    if(err < 0) {
+        mvwprintw(werr, err_l, 1,"Failed sending message.");
+        
+        print_err_handle();
+        close(fd);
+        return;
+    }
+
+    close(fd);
 
 }
 
