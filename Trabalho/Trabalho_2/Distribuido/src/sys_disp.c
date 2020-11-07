@@ -5,7 +5,7 @@
 struct bme280_dev dev;
 struct identifier id;
 
-bme_env_t env_global = {-100, -100, 5};
+bme_env_t env_global = {-100, -100, 7};
 int alarm_house = 0;
 const int hysteresis = 2;
 

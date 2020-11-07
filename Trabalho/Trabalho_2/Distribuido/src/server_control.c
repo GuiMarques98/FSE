@@ -102,6 +102,8 @@ void* server_listener(void* args) {
 
                 turn_air(AIR_CONDITIONING_1, air[0]);
                 turn_air(AIR_CONDITIONING_2, air[1]);
+            } else {
+                fprintf(stderr, "Error in get jason\n");
             }
             shutdown(fd_connect, SHUT_RDWR);
             close(fd_connect);
@@ -175,10 +177,11 @@ void* server_device(void* args) {
     time_b += begin.tv_nsec / 1000000000.0;
 
     while(1) {
-        // if(detect_any_presence()) {
-        //     printf("Detect presence!\n");
-        //     while(send_alarm());
-        // }
+        if(detect_any_presence()) {
+            printf("Detect presence!\n");
+            // while(send_alarm());
+            send_alarm();
+        }
 
         clock_gettime(CLOCK_MONOTONIC, &end);
         double time_e = end .tv_sec;
@@ -253,7 +256,6 @@ int send_alarm() {
 
     addr.sin_port = htons(CENTRAL_PORT);
     addr.sin_addr.s_addr = inet_addr(CENTRAL_IP);
-    addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_family = AF_INET;
 
     int err = connect(fd_alarm, (struct sockaddr *)&addr, sizeof(struct sockaddr));
