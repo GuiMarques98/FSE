@@ -20,8 +20,13 @@
 #endif
 
 
+
 #define RESISTOR RPI_V2_GPIO_P1_16
 #define FAN RPI_V2_GPIO_P1_18
+#define TURN_ON 0x0
+#define TURN_OFF 0x1
+
+
 #define TURN_ON 0x0
 #define TURN_OFF 0x1
 
