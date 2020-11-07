@@ -1,6 +1,6 @@
-# Trabalho 1
+# Trabalho 2
 
-Esse é a implementação do Trabalho 1 de Fundamentos de Sistemas Embarcados da Universidade de Brasília do semestre de 2020.1. O trabalho está definido [neste](https://gitlab.com/fse_fga/projetos/projeto-1) GitLab.
+Esse é a implementação do Trabalho 2 de Fundamentos de Sistemas Embarcados da Universidade de Brasília do semestre de 2020.1. O trabalho está definido [neste](https://gitlab.com/fse_fga/projetos/projeto-2) GitLab.
 
 ### Compilação e Execução do programa
 
@@ -22,11 +22,4 @@ Para limpar os .o e o executável só rodar o comando:
 
 ### Execução do Programa
 
-Quando o programa inicia ele mostrara. Digite qual a opção e insira a temperatura caso necessário. Caso o programa seja interrompido por qualquer motivo o sistema desligara tudo normalmente.
-
-```
-Por favor insira a forma que deseja ajustar a temperatura:
-1 - Potenciometro
-2 - Teclado
-3 - Sair
-```
+Execute esse programa depois de executar o servidor central.
