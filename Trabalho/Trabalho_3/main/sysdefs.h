@@ -1,0 +1,9 @@
+#ifndef SYS_DEFS__H
+#define SYS_DEFS__H
+
+#define WIFI_COMPLETED_BIT BIT0
+#define IP_STACK_COMPLETED_BIT BIT1
+#define OPEN_WETHER_COMPLETED_BIT BIT2
+
+
+#endif
