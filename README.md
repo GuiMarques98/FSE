@@ -1,2 +1,4 @@
 # FSE
-Repositório de trabalhos e exercicios de Fundamentos de Sistemas Embarcados da Universidade de Brasília de 2020.1
+
+Este respositorio tem objetivo de armazenar atividade e trabalhos da disciplina de Fundamentos de Sistemas Embarcados da Universidade de Brasília.
+
