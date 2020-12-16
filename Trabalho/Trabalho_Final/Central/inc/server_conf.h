@@ -1,11 +1,10 @@
 #ifndef SERVER_CONF__H
 #define SERVER_CONF__H
 
-#include <signal.h>
 #include <stdio.h>
+#include <signal.h>
 
 #include <string.h>
-#include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
@@ -15,6 +14,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <ncurses.h>
+#include <time.h>
 
 #include <string>
 #include <iostream>
@@ -51,5 +51,8 @@ void close_menu();
 
 void send_command();
 void interrupt(int);
+
+void init_maintain_data();
+void maintain_data_csv();
 
 #endif

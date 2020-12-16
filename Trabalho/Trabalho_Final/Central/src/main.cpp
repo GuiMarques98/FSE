@@ -16,5 +16,6 @@ int main(int argc, char** argv) {
     signal(SIGTERM,interrupt);
     start_all();
     // system("omxplayer doc/Alarm-Fast-A1-www.fesliyanstudios.com.mp3");
+    
     return 0;
 }

@@ -1,6 +1,5 @@
 #include "../inc/server_conf.h"
 
-
 // Screen ncurses variables
 WINDOW* wenv;
 WINDOW* wdevices;
@@ -26,6 +25,7 @@ using namespace std;
 void start_all() {
     init_menu();
     menu_cont();
+    init_maintain_data();
     close_menu();
 }
 
@@ -100,8 +100,6 @@ void init_menu() {
     // Creating threads for server listener commands
     pthread_create(&control_thread, NULL, get_env, NULL);
 
-
-
 }
 
 void menu_cont() {
@@ -129,7 +127,6 @@ void menu_cont() {
         wrefresh(werr);
         pthread_mutex_unlock(&lock);
         
-
 
         choice = wgetch(wdevices);
 
@@ -345,6 +342,8 @@ void send_command() {
 
     close(fd);
 
+    maintain_data_csv();
+
 }
 
 void interrupt(int sig) {
@@ -375,4 +374,47 @@ void apply_choice(int highlight) {
             flag = 0;
             break;
     }
+}
+
+void init_maintain_data(){
+    //printf("mantendo");
+
+    FILE *p_file;
+    p_file = fopen ("./doc/data.csv", "w+");
+    fprintf(p_file, "\"Data\",\"Hora\",\"Temperatura\",\"Humidade\",\"Lampada Cozinha\",\"Lampada Sala\",\"Lampada Quarto 1\",\"Lampada Quarto 2\",\"Ar-condicionado 1\",\"Ar-condicionado 2\",\"Alarme\"\n");
+    fclose(p_file);
+
+}
+
+void maintain_data_csv(){
+    struct tm *date_hour;     
+    time_t segundos;
+    time(&segundos);
+
+    date_hour = localtime(&segundos);  
+
+    FILE *p_file;
+    p_file = fopen ("./doc/data.csv", "a+");
+    fprintf(p_file,"\"%d/%d/%d\",", date_hour->tm_mday, date_hour->tm_mon+1,date_hour->tm_year+1900);
+    fprintf(p_file,"\"%d:%d:%d\",", date_hour->tm_hour, date_hour->tm_min, date_hour->tm_sec);
+    fprintf(p_file, "\"%0.2lf\",\"%0.2lf\"\n", temp, hum);
+
+    //devices_turn
+    int i;
+    
+    for (i = 0; i < 6; i++){
+        if (devices_turn[i] == false)
+            fprintf(p_file, "\"Desligado\",");
+        else
+            fprintf(p_file, "\"Ligado\",");
+        
+    }
+
+    if (alarm_global == 0)
+        fprintf(p_file, "\"Desligado\"");
+    else
+        fprintf(p_file, "\"Ligado\"");
+    
+    fclose(p_file);
+
 }
