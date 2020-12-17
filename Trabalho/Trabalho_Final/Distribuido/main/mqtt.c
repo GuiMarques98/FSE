@@ -27,10 +27,10 @@ static esp_err_t mqtt_topico_handler(char *topico, int topico_len, char *data, i
 {
     // data[data_len+1] = 0;
     // topico[topico_len] = 0;
-    ESP_LOGI("MQTT", "JSON %d %s", data_len, data);
-    ESP_LOGI("MQTT", "Topico %d %s", topico_len, topico);
-    char topico_if[100];
+    // ESP_LOGI("MQTT", "JSON %d %s", data_len, data);
+    char topico_if[100], topico_if2[100];
     sprintf(topico_if, "fse2020/160029503/dispositivos/%s", mac_address);
+    sprintf(topico_if2, "%.*s", topico_len, topico);
     cJSON *json = cJSON_Parse(data);
 
     if (json == NULL)
@@ -39,14 +39,16 @@ static esp_err_t mqtt_topico_handler(char *topico, int topico_len, char *data, i
         xSemaphoreGive(mqttRequestInitialization);
         return ESP_ERR_NOT_FOUND;
     }
-    if (!strcmp(topico_if, topico))
+    ESP_LOGI("MQTT", "Topico %.*s\r", topico_len, topico);
+    ESP_LOGI("MQTT", "Topico 2 %s", topico_if);
+    if (!strcmp(topico_if, topico_if2))
     {
         cJSON *json_topico = cJSON_GetObjectItemCaseSensitive(json, "comodo");
-        ESP_LOGI("MQTT", "Json recebido e comodo é %s", json_topico->string);
-        sprintf(comodo_name, "fse2020/160029503/%s", json_topico->string);
+        ESP_LOGI("MQTT", "Json recebido e comodo é %s", json_topico->valuestring);
+        sprintf(comodo_name, "fse2020/160029503/%s", json_topico->valuestring);
         ESP_LOGI("MQTT", "Topido do comodo é %s", comodo_name);
         
-        // nvs_set_str(partition_handler, "name", json_topico->string);
+        nvs_set_str(partition_handler, "name", json_topico->valuestring);
         xSemaphoreGive(mqttRequestInitialization);
     }
     return ESP_OK;
