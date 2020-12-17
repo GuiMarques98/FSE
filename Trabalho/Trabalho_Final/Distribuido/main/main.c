@@ -6,22 +6,28 @@
 #include "freertos/event_groups.h"
 #include "driver/gpio.h"
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "driver/gpio.h"
-#include "sdkconfig.h"
+#include "nvs.h"
+#include "nvs_flash.h"
+#include "esp_system.h"
+#include "esp_log.h"
 
-#include "dht11.h"
+#include "wifi.h"
+
+xSemaphoreHandle conexaoWifiSemaphore, mqttRequestInitialization, mqttInicializationFinished;
 
 void app_main(void)
 {
-    DHT11_init(4);
-
-    while (1)
+    conexaoWifiSemaphore = xSemaphoreCreateBinary();
+    mqttRequestInitialization = xSemaphoreCreateBinary();
+    esp_err_t res = nvs_flash_init();
+    if (res == ESP_ERR_NVS_NO_FREE_PAGES || res == ESP_ERR_NVS_NEW_VERSION_FOUND)
     {
-        printf("Temperature is %d \n", DHT11_read().temperature);
-        printf("Humidity is %d\n", DHT11_read().humidity);
-        printf("Status code is %d\n", DHT11_read().status);
-        vTaskDelay(1000/portTICK_PERIOD_MS);
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        res = nvs_flash_init();
     }
+    ESP_ERROR_CHECK(res);
+
+    wifi_start();
+    xSemaphoreTake(conexaoWifiSemaphore, portMAX_DELAY);
+
 }
