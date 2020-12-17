@@ -17,6 +17,7 @@
 
 char comodo_name[MAX_LENGTH];
 esp_mqtt_client_handle_t client;
+nvs_handle partition_handler;
 
 extern char mac_address[50];
 
@@ -24,18 +25,28 @@ extern xSemaphoreHandle conexaoWifiSemaphore, mqttRequestInitialization, mqttIni
 
 static esp_err_t mqtt_topico_handler(char *topico, int topico_len, char *data, int data_len)
 {
+    // data[data_len+1] = 0;
+    // topico[topico_len] = 0;
+    ESP_LOGI("MQTT", "JSON %d %s", data_len, data);
+    ESP_LOGI("MQTT", "Topico %d %s", topico_len, topico);
+    char topico_if[100];
+    sprintf(topico_if, "fse2020/160029503/dispositivos/%s", mac_address);
     cJSON *json = cJSON_Parse(data);
 
     if (json == NULL)
     {
-        ESP_LOGI("MQTT", "JSON INVALIDO %s", data);
+        ESP_LOGE("MQTT", "JSON INVALIDO %s", data);
         xSemaphoreGive(mqttRequestInitialization);
         return ESP_ERR_NOT_FOUND;
     }
-    if (!strcmp(mac_address, topico))
+    if (!strcmp(topico_if, topico))
     {
         cJSON *json_topico = cJSON_GetObjectItemCaseSensitive(json, "comodo");
+        ESP_LOGI("MQTT", "Json recebido e comodo é %s", json_topico->string);
         sprintf(comodo_name, "fse2020/160029503/%s", json_topico->string);
+        ESP_LOGI("MQTT", "Topido do comodo é %s", comodo_name);
+        
+        // nvs_set_str(partition_handler, "name", json_topico->string);
         xSemaphoreGive(mqttRequestInitialization);
     }
     return ESP_OK;
@@ -49,8 +60,11 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     switch (event->event_id)
     {
     case MQTT_EVENT_CONNECTED:
-        xSemaphoreGive(mqttRequestInitialization);
         ESP_LOGI("MQTT", "MQTT_EVENT_CONNECTED");
+        char topico[100];
+        sprintf(topico, "fse2020/160029503/dispositivos/%s", mac_address);
+        esp_mqtt_client_subscribe(client, topico, 0);
+        xSemaphoreGive(mqttRequestInitialization);
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI("MQTT", "MQTT_EVENT_DISCONNECTED");
@@ -89,6 +103,8 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
 int get_comodo()
 {
+    ESP_LOGI("MQTT", "Pegando o comodo da pessoa");
+
     esp_err_t ret = nvs_flash_init_partition(PARTITION_NAME);
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
     {
@@ -97,12 +113,14 @@ int get_comodo()
     }
     ESP_ERROR_CHECK(ret);
 
-    nvs_handle partition_handler;
+ 
     esp_err_t res_nvs = nvs_open_from_partition(PARTITION_NAME, "comodo", NVS_READWRITE, &partition_handler);
     char name_request[20];
     size_t length_req = 20;
     esp_err_t res = nvs_get_str(partition_handler, "name", name_request, &length_req);
-    if (res == ESP_ERR_NOT_FOUND)
+    ESP_LOGI("MQTT", "Chegou no if (%x)", res);
+
+    if (res != ESP_OK)
     {
         cJSON *mac_obj = cJSON_CreateObject();
         cJSON *mac_string = cJSON_CreateString(mac_address);
@@ -131,7 +149,6 @@ void mqtt_start()
     esp_mqtt_client_start(client);
 
     xSemaphoreTake(mqttRequestInitialization, portMAX_DELAY);
-
     get_comodo();
     xSemaphoreGive(mqttInicializationFinished);
 }

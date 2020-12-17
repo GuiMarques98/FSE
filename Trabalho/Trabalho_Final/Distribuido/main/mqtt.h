@@ -5,7 +5,7 @@
 #define INITIALIZE_MQTT "fse2020/160029503/dispositivos"
 #define PARTITION_NAME "MQTTData"
 #define MAX_LENGTH 50
-#define MQTT_BROKER_URL "mqtt://mqtt.eclipse.org"
+#define MQTT_BROKER_URL "mqtt://broker.emqx.io"
 
 /* Function headers */
 void mqtt_start();
